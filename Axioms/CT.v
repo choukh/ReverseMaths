@@ -1,6 +1,7 @@
 (** Coq coding by choukh, July 2022 **)
 
-Require Import Notions Equivalence NatEmbed.
+Require Import Notions Equivalence NatEmbed PartialFunc.
+Import PartialFunc.模型.
 
 Notation 解释器 := (ℕ → ℕ → ℕ → ℕ?).
 
@@ -9,24 +10,36 @@ Definition CT (ϕ : 解释器) :=
   (∀ c x, 安定 (ϕ c x)) ∧
   ∀ f, ∃ c, ∀ x, ∃ n, ϕ c x n = Some (f x).
 
-Lemma ϕ平稳 {ϕ c x} : CT ϕ → 平稳 (ϕ c x).
-Proof. intros ct. apply 安定平稳, ct. Qed.
-
 (* 克莱尼的SMN定理 https://en.wikipedia.org/wiki/Smn_theorem *)
-Definition SMN (ϕ : 解释器) := ∃ S : ℕ → ℕ → ℕ, ∀ c x y z,
-  (∃ n, ϕ c ⟨x, y⟩ n = Some z) ↔ (∃ n, ϕ (S c x) y n = Some z).
+Definition SMN (ϕ : 解释器) := ∃ S : ℕ → ℕ → ℕ, ∀ c x y,
+  ϕ c ⟨x, y⟩ ≡{_} ϕ (S c x) y.
 
 (* 综合式 (Synthetic) 邱奇论题 *)
-Definition SCT := Σ (ϕ : 解释器),
+Definition SCT := Σ ϕ : 解释器,
   (∀ c x, 安定 (ϕ c x)) ∧
   ∀ fᵢ : ℕ → ℕ → ℕ, ∃ cᵢ, ∀ i x, ∃ n, ϕ (cᵢ i) x n = Some (fᵢ i x).
 
-(* Bauer的枚举性公理强化版: 强存在枚举函数的枚举 *)
-Definition EA := Σ ε : ℕ → (ℕ → ℕ?), ∀ f : ℕ → ℕ?, ∃ c, ε c ≡{_} f.
+Definition SCTᴮ := Σ ϕ : ℕ → ℕ → ℕ → bool?,
+  (∀ c x, 安定 (ϕ c x)) ∧
+  ∀ fᵢ : ℕ → ℕ → bool, ∃ cᵢ, ∀ i x, ∃ n, ϕ (cᵢ i) x n = Some (fᵢ i x).
 
-(* Bauer的枚举性公理原版: 强存在可枚举集的枚举 *)
+(* Richman的偏函数可枚举性公理 *)
+(* 参考: Fred Richman. Church’s thesis without tears. The Journal of symbolic logic, 48(3):797–803, 1983. *)
+Definition EPF `{偏函数模型} := Σ ε : ℕ → ℕ ⇀ ℕ,
+  ∀ fᵢ : ℕ → ℕ ⇀ ℕ, ∃ cᵢ, ∀ i, ε (cᵢ i) ≡{_} fᵢ i.
+
+Definition EPFᴮ `{偏函数模型} := Σ ε : ℕ → ℕ ⇀ bool,
+  ∀ fᵢ : ℕ → ℕ ⇀ bool, ∃ cᵢ, ∀ i, ε (cᵢ i) ≡{_} fᵢ i.
+
+(* Bauer的可枚举性公理原版: 强存在可枚举谓词的枚举 *)
 (* 参考: Andrej Bauer. First steps in synthetic computability theory. Electronic Notes in Theoretical Computer Science, 155:5–31, 2006. *)
-Definition EAₒ := Σ ε : ℕ → (ℕ → Prop), ∀ p : ℕ → Prop, 可枚举 p ↔ ∃ c, ε c ≡{_} p.
+Definition EAᵒ := Σ ε : ℕ → (ℕ → Prop), ∀ p : ℕ → Prop, 可枚举 p ↔ ∃ c, ε c ≡{_} p.
+
+(* Bauer的可枚举性公理强化版: 强存在谓词枚举器的枚举 *)
+Definition EAᵉ := Σ ε : ℕ → (ℕ → ℕ?), ∀ p : ℕ → Prop, 可枚举 p ↔ ∃ c, 枚举器 p (ε c).
+
+(* Bauer的可枚举性公理强化版: 强存在枚举函数的枚举 *)
+Definition EAᶠ := Σ ε : ℕ → (ℕ → ℕ?), ∀ f : ℕ → ℕ?, ∃ c, ε c ≡{_} f.
 
 Theorem CT_SMN_to_SCT : (Σ ϕ, CT ϕ ∧ SMN ϕ) → SCT.
 Proof.
@@ -46,21 +59,7 @@ Proof.
     exists (γ 0). intros. eauto.
 Qed.
 
-Theorem EA_to_EAₒ : EA → EAₒ.
-Proof.
-  intros ea. destruct ea as [ε Hε].
-  set (λ c x, ∃ n, ε c n = Some x) as ε'.
-  exists ε'. intros p. unfold 可枚举, 枚举器.
-  transitivity (∃ c, ∀ x, p x ↔ ∃ n, ε c n = Some x).
-  - split.
-    + intros [f Hf].
-      destruct (Hε f) as [c Hc].
-      exists c. intros x. rewrite Hf. cbn in Hc. now rewrite Hc.
-    + intros [c Hc]. now exists (ε c).
- - firstorder.
-Qed.
-
-Theorem CT_to_EA : ∀ ϕ, CT ϕ → EA.
+Theorem CT_to_EAᶠ : ∀ ϕ, CT ϕ → EAᶠ.
 Proof.
   intros ϕ [sat com].
   set (λ c, λ' ⟨x, n⟩, match ϕ c x n with
@@ -78,9 +77,32 @@ Proof.
     destruct ⎞m⎛ as (x, n).
     destruct (ϕ c x n) as [[|]|] eqn: ϕcxn; inv T'cm.
     exists x. destruct (com' x) as [n' ϕcxn'].
-    assert (eq: S y = f' x). eapply ϕ平稳; eauto. split; auto.
+    assert (eq: S y = f' x). eapply 安定平稳; eauto.
     unfold f' in eq. destruct (f x); congruence.
   - intros [x fx].
     destruct (com' x) as [n ϕcxn]. exists ⟨x, n⟩.
     unfold f' in ϕcxn. now rewrite GF, ϕcxn, fx.
 Qed.
+
+Theorem EAᵉ_to_EAᵒ : EAᵉ → EAᵒ.
+Proof.
+  intros [ε H].
+  set (λ c x, ∃ n, ε c n = Some x) as ε'.
+  exists ε'. intros p. rewrite H. firstorder.
+Qed.
+
+Theorem EAᵉ_iff_EAᶠ : (EAᵉ → EAᶠ) * (EAᶠ → EAᵉ).
+Proof.
+  split.
+  - intros [ε H]. exists ε. intros f.
+    set (λ x, ∃ n, f n = Some x) as p.
+    assert (He: 可枚举 p) by firstorder.
+    apply H in He as [c He]. firstorder.
+  - intros [ε H]. exists ε. intros p. split.
+    + intros [f He]. specialize H with f as [c H].
+      exists c. intros x. rewrite (He x). firstorder.
+    + intros [c He]. now exists (ε c).
+Qed.
+
+Corollary EAᶠ_to_EAᵒ : EAᶠ → EAᵒ.
+Proof. intros ea. apply EAᵉ_to_EAᵒ. now apply EAᵉ_iff_EAᶠ. Qed.

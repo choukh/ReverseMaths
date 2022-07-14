@@ -53,7 +53,7 @@ Definition 偏类型等词 (x y : 偏 A) := ∀ a, x ?= a ↔ y ?= a.
 Instance 偏类型等词为等价关系 : Equivalence 偏类型等词.
 Proof. firstorder. Qed.
 
-Instance 偏类型外延 : 等价关系 (偏 A) := {| R := 偏类型等词 |}.
+Global Instance 偏类型外延 : 等价关系 (偏 A) := {| R := 偏类型等词 |}.
 
 Lemma 有值解包_l (a b : A) : 有 a ?= b → a = b.
 Proof. intros. eapply 解包关系单射. eapply 有规则. easy. Qed.
