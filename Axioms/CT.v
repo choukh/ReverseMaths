@@ -12,11 +12,17 @@ Definition CT (ϕ : ℕ → ℕ → ℕ → ℕ?) :=
 (* 参考: Andrej Bauer. First steps in synthetic computability theory. Electronic Notes in Theoretical Computer Science, 155:5–31, 2006. *)
 Definition EAᵒ := Σ ε : ℕ → (ℕ → Prop), ∀ p : ℕ → Prop, 可枚举 p ↔ ∃ c, ε c ≡{_} p.
 
-(* Bauer的可枚举性公理强化版: 强存在谓词枚举器的枚举 *)
+(* EAᵒ强化版: 强存在谓词枚举器的枚举 *)
 Definition EAᵉ := Σ ε : ℕ → (ℕ → ℕ?), ∀ p : ℕ → Prop, 可枚举 p ↔ ∃ c, 枚举器 p (ε c).
 
-(* Bauer的可枚举性公理强化版: 强存在枚举函数的枚举 *)
+(* EAᵒ强化版: 强存在枚举函数的枚举 *)
 Definition EAᶠ := Σ ε : ℕ → (ℕ → ℕ?), ∀ f : ℕ → ℕ?, ∃ c, ε c ≡{_} f.
+
+(* Richman的偏函数可枚举性公理 *)
+(* 参考: Fred Richman. Church’s thesis without tears. The Journal of symbolic logic, 48(3):797–803, 1983. *)
+Definition EPF `{偏函数模型} := Σ ε : ℕ → ℕ ⇀ ℕ, ∀ f : ℕ ⇀ ℕ, ∃ c, ε c ≡{_} f.
+
+Definition EPFᴮ `{偏函数模型} := Σ ε : ℕ → ℕ ⇀ bool, ∀ f : ℕ ⇀ bool, ∃ n, ε n ≡{_} f.
 
 Theorem CT_to_EAᶠ : ∀ ϕ, CT ϕ → EAᶠ.
 Proof.
@@ -56,7 +62,7 @@ Proof.
     + intros [c He]. now exists (ε c).
 Qed.
 
-Theorem EAᵉ_to_EAᵒ : EAᵉ → EAᵒ.
+Fact EAᵉ_to_EAᵒ : EAᵉ → EAᵒ.
 Proof.
   intros [ε H].
   set (λ c x, ∃ n, ε c n = Some x) as ε'.
@@ -64,4 +70,16 @@ Proof.
 Qed.
 
 Corollary EAᶠ_to_EAᵒ : EAᶠ → EAᵒ.
-Proof. intros ea. apply EAᵉ_to_EAᵒ. now apply EAᵉ_iff_EAᶠ. Qed.
+Proof. intros ea. now apply EAᵉ_to_EAᵒ, EAᵉ_iff_EAᶠ. Qed.
+
+Corollary CT_to_EAᵒ : ∀ ϕ, CT ϕ → EAᵒ.
+Proof. intros ϕ ct. now apply EAᶠ_to_EAᵒ, (CT_to_EAᶠ ϕ). Qed.
+
+Lemma EPF_to_CT `{偏函数模型} : EPF → Σ ϕ, CT ϕ.
+Proof.
+  intros [ε epf]. set (λ c x n, 求值 (ε c x) n) as ϕ. exists ϕ. split.
+  -intros c x n y ϕcxn m ge. eapply 求值安定; eauto.
+  - intros f. destruct (epf (λ n, 有 (f n))) as [c Hc].
+    exists c. intros x. specialize (Hc x (f x)).
+    apply 求值规则, Hc, 有规则.
+Qed.
