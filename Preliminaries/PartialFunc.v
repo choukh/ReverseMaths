@@ -3,12 +3,10 @@
 Require Import ConstructiveEpsilon Setoid.
 Require Import Notions Equivalence NatLargeElim.
 
-Reserved Notation "x ?= a" (at level 50).
+Reserved Notation "x ?= a" (at level 70).
 Reserved Notation "x @ n" (at level 50).
 Reserved Notation "x >>= f" (at level 50).
 Reserved Notation "A ⇀ B" (at level 10).
-
-Module 模型.
 
 Class 偏函数模型 := {
   偏 : Type → Type where "A ⇀ B" := (A → 偏 B);
@@ -37,7 +35,7 @@ Class 偏函数模型 := {
     x >>= f ?= y ↔ ∃ a, x ?= a ∧ f a ?= y;
 }.
 
-Notation "x ?= a" := (解包关系 x a) (at level 50).
+Notation "x ?= a" := (解包关系 x a) (at level 70).
 Notation "x @ n" := (求值 x n) (at level 50).
 Notation "x >>= f" := (绑定 x f) (at level 50).
 Notation "A ⇀ B" := (A → 偏 B) (at level 10).
@@ -63,6 +61,9 @@ Proof. intros ->. apply 有规则. Qed.
 
 Lemma 有值解包 (a b : A) : 有 a ?= b ↔ a = b.
 Proof. split. apply 有值解包_l. apply 有值解包_r. Qed.
+
+Lemma 有值求值 (a b : A) n : 有 a @ n = Some b → a = b.
+Proof. intros. apply 有值解包, 求值规则. now exists n. Qed.
 
 Definition 有值 (x : 偏 A) := ∃ a, x ?= a.
 
@@ -112,28 +113,3 @@ Proof.
 Qed.
 
 End 某偏函数模型内.
-End 模型.
-
-Module 实装.
-
-Record 偏 A := {
-  求值 : ℕ → A?;
-  求值安定 : 安定 求值
-}.
-Arguments 求值 {_} _ _.
-Notation "x @ n" := (求值 x n) (at level 50).
-
-Section 给定类型A.
-Context {A : Type}.
-
-Definition 解包关系 (x : 偏 A) (a : A) := ∃ n, x @ n = Some a.
-Notation "x ?= a" := (解包关系 x a) (at level 50).
-
-Lemma 解包关系单射 : ∀ (x : 偏 A) a b, x ?= a → x ?= b → a = b.
-Proof.
-  intros x a b [n Hn] [m Hm].
-  eapply 安定平稳. apply 求值安定. eauto. eauto.
-Qed.
-
-End 给定类型A.
-End 实装.

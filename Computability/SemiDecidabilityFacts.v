@@ -1,7 +1,6 @@
 (** Coq coding by choukh, July 2022 **)
 
-Require Import Notions PartialFunc.
-Import PartialFunc.模型.
+Require Import Notions NatEmbed PartialFunc.
 
 Lemma 半可判定的偏函数表述 {M : 偏函数模型} {A} {p : A → Prop} :
   半可判定 p ↔ ∃ B (f : A ⇀ B), ∀ x, p x ↔ 有值 (f x).

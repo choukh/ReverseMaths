@@ -1,7 +1,6 @@
 (** Coq coding by choukh, July 2022 **)
 
 Require Import Notions Equivalence NatEmbed PartialFunc CT.
-Import PartialFunc.模型.
 
 (* 克莱尼的SMN定理 https://en.wikipedia.org/wiki/Smn_theorem *)
 Definition SMN (ϕ : ℕ → ℕ → ℕ → ℕ?) := ∃ S : ℕ → ℕ → ℕ, ∀ c x y,

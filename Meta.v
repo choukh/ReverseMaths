@@ -1,10 +1,12 @@
 (** Coq coding by choukh, July 2022 **)
 
-Require Export Utf8_core.
+Require Export Utf8.
 
 Notation ℕ := nat.
 
 Notation "A ?" := (option A) (format "A ?", at level 20).
+
+Notation "P ⇔ Q" := (prod (P → Q) (Q → P)) (at level 95).
 
 (* 存在量词式Σ类型记法 *)
 Notation "'Σ' x .. y , p" := (sigT (fun x => .. (sigT (fun y => p)) ..))

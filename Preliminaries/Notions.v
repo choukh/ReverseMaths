@@ -4,7 +4,7 @@ Require Export Meta.
 Require Import Compare_dec.
 
 Definition 安定 {T} (f : ℕ → T?) :=
-  ∀ n x, f n = Some x → ∀ m, m >= n → f m = Some x.
+  ∀ n x, f n = Some x → ∀ m, m ≥ n → f m = Some x.
 
 Definition 平稳 {T} (f : ℕ → T?) :=
   ∀ n m y z, f n = Some y → f m = Some z → y = z.

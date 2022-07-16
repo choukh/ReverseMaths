@@ -45,7 +45,7 @@ Proof.
 Qed.
 
 Notation "'λ'' ⟨ x , y ⟩ , b" := (λ n, let (x, y) := G n in b)
-  (format "'λ''  ⟨ x ,  y ⟩ ,  b", at level 30, b at next level).
+  (format "'λ''  ⟨ x ,  y ⟩ ,  b", at level 190, b at next level).
 
 Notation "⟨ x , y ⟩" := (F (x, y)) (format "⟨ x ,  y ⟩").
 Notation "⎞ n ⎛" := (G n) (format "⎞ n ⎛").

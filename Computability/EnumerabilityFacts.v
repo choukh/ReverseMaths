@@ -1,7 +1,6 @@
 (** Coq coding by choukh, July 2022 **)
 
 Require Import Notions NatEmbed PartialFunc.
-Import PartialFunc.模型.
 
 Lemma 可枚举的偏函数表述 {M : 偏函数模型} {A} (p : A → Prop) :
   可枚举 p ↔ ∃ f : ℕ ⇀ A, ∀ x, p x ↔ ∃ n, f n ?= x.

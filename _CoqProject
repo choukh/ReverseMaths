@@ -7,6 +7,7 @@ Preliminaries/Equivalence.v
 Preliminaries/NatEmbed.v
 Preliminaries/NatLargeElim.v
 Preliminaries/PartialFunc.v
+Preliminaries/PartialFuncImpl.v
 Preliminaries/Examples.v
 
 Computability/EnumerabilityFacts.v
