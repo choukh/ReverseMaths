@@ -1,6 +1,7 @@
 (** Coq coding by choukh, July 2022 **)
 
 Require Import Nat Notions Equivalence NatEmbed PartialFunc.
+Import PartialFunc.PairView.
 
 (* 邱奇论题: 任意函数在任意给定的计算模型中可定义 *)
 Definition CT (ϕ : ℕ → ℕ → ℕ → ℕ?) := 
@@ -68,7 +69,7 @@ Qed.
 Corollary CT_to_EAₒ : ∀ ϕ, CT ϕ → EAₒ.
 Proof. intros ϕ ct. now apply EA_to_EAₒ, (CT_to_EA ϕ). Qed.
 
-Section 某偏函数模型内.
+Section 给定偏函数模型.
 Context {M : 偏函数模型}.
 
 (* Richman的偏函数可枚举性公理 *)
@@ -77,18 +78,23 @@ Definition EPF := Σ ε : ℕ → ℕ ⇀ ℕ, ∀ f : ℕ ⇀ ℕ, ∃ c, ε c 
 
 Definition EPFᴮ := Σ ε : ℕ → ℕ ⇀ bool, ∀ f : ℕ ⇀ bool, ∃ n, ε n ≡{_} f.
 
-Let B (f : ℕ ⇀ ℕ) x := f x >>= (λ y, if y =? 1 then 有 true else 有 false).
-Let N (f : ℕ ⇀ bool) x := f x >>= (λ y, if y then 有 1 else 有 0).
+Let toB (f : ℕ ⇀ ℕ) : ℕ ⇀ bool := λ x, f x >>= (λ y, if y =? 1 then 有 true else 有 false).
+Let toN (f : ℕ ⇀ bool) : ℕ ⇀ ℕ := λ x, f x >>= (λ y, if y then 有 1 else 有 0).
 
 Fact EPF_to_EPFᴮ : EPF → EPFᴮ.
 Proof.
-  intros [ε H]. exists (λ n, B (ε n)). intros f.
-  destruct (H (N f)) as [c Hc]. exists c. intros x y.
-  unfold B. rewrite 绑定规则. simpl in Hc. unfold 偏类型等词 in Hc.
-  setoid_rewrite Hc. split.
-  - intros [n Hn]. destruct (PeanoNat.Nat.eqb_spec n 1).
-    + subst.
-Admitted.
+  intros [ε H]. exists (λ n, toB (ε n)). intros f.
+  destruct (H (toN f)) as [c Hc]. exists c. intros x y.
+  simpl in Hc. unfold 偏类型等词 in Hc.
+  unfold toB. rewrite 绑定规则. setoid_rewrite Hc. split.
+  - intros [n [H1 H2]]; destruct (PeanoNat.Nat.eqb_spec n 1); subst;
+    apply 有值解包 in H2; subst; apply 绑定规则 in H1 as [[] [H1 H2]]; auto;
+    apply 有值解包 in H2; congruence.
+  - intros H1. exists (if y then 1 else 0). split.
+    + apply 绑定规则. exists y. split. easy.
+      destruct y; apply 有值解包; easy.
+    + destruct y; apply 有值解包; easy.
+Qed.
 
 Lemma EPF_to_CT : EPF → Σ ϕ, CT ϕ.
 Proof.
@@ -119,6 +125,13 @@ Proof.
 Qed.
 
 Lemma EA_to_EPF : EA → EPF.
+Proof.
+  intros [ε ea].
+  set (λ c, G (λ x, if ε c x is Some x then Some ⎞x⎛ else None)) as ε'.
+  exists ε'. intros f.
+  set (λ n, if F f n is Some (x, y) then Some ⟨x, y⟩ else None) as f'.
+  destruct (ea f') as [c H]. exists c. intros x y. split.
+  - intros.
 Admitted.
 
 Theorem EPF_iff_EA : EPF ⇔ EA.
@@ -131,7 +144,7 @@ Proof.
   - apply EPF_to_CT.
 Qed.
 
-End 某偏函数模型内.
+End 给定偏函数模型.
 
 Require Import PartialFuncImpl.
 

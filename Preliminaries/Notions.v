@@ -39,3 +39,6 @@ Definition 余半可判定 {T} (p : T → Prop) :=
 
 Definition 逻辑可判定 {T} (p : T → Prop) := ∀ x, p x ∨ ¬ p x.
 Definition 强逻辑可判定 {T} (p : T → Prop) := ∀ x, {p x} + {¬ p x}.
+
+Fact 布尔函数可判定性 (f : ℕ → bool) n : {f n = true} + {f n ≠ true}.
+Proof. destruct (f n); firstorder. Qed.

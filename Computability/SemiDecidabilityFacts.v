@@ -16,6 +16,6 @@ Proof.
     intros x. rewrite Hf. split.
     + intros [y H]. apply 求值规则 in H as [n H].
       exists n. rewrite H. easy.
-    + intros [n H]. destruct 求值 eqn: E.
+    + intros [n H]. destruct 求值 eqn:E.
       eexists. eapply 求值规则. eauto. discriminate.
 Qed.

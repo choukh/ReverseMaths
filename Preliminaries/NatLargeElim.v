@@ -4,7 +4,7 @@ Require Export Meta.
 Require Import Lia Notions.
 
 (* 满足 p 的不小于 n 的最小数 m *)
-Definition 最小 p n m := p m ∧ n <= m ∧ ∀ k, n <= k → p k → m <= k.
+Definition 最小 p n m := p m ∧ n ≤ m ∧ ∀ k, n ≤ k → p k → m ≤ k.
 
 Section 布尔值编码.
 
@@ -38,28 +38,24 @@ Proof.
 Qed.
 
 (* 从非空子集中构造地提取最小元 *)
-Lemma 非空提取 : (∃ n, f n = true) → Σ n, 最小 (λ k, f k = true) 0 n.
+Theorem 自然数布尔值大消除 n : f n = true → Σ n, f n = true ∧ ∀ k, k < n → f k = false.
 Proof.
-  intros H. apply (G_提取 0).
-  destruct H as [n H]. apply (G_0 n).
-  constructor. rewrite H. discriminate.
+  intros H. pose proof (G_提取 0) as [m [H1 [_ H2]]].
+  - apply (G_0 n). constructor. rewrite H. discriminate.
+  - exists m. split. apply H1. intros k fk.
+    destruct (f k) eqn:E. 2:easy.
+    enough (m ≤ k) by lia. apply H2. lia. apply E.
 Qed.
 
 End 布尔值编码.
 
-Theorem 自然数大消除 (p : ℕ → Prop) : 强逻辑可判定 p →
-  (∃ n, p n) → Σ n, p n.
+Theorem 自然数命题大消除 (p : ℕ → Prop) : 强逻辑可判定 p →
+  ∀ n, p n → Σ n, p n ∧ ∀ k, k < n → ¬ p k.
 Proof.
-  intros dec Hn.
-  destruct (非空提取 (λ n, if dec n then true else false)) as [n H].
-  - abstract (destruct Hn as [n H]; exists n; destruct dec; firstorder).
-  - exists n. destruct H as [H _]. destruct (dec n). easy. congruence.
-Defined.
-
-Theorem 自然数大消除_最小性 p dec ex m : m < projT1 (自然数大消除 p dec ex) → ¬ p m.
-Proof.
-  intros lt. unfold 自然数大消除 in lt.
-  destruct 非空提取 as [n (H1 & H2 & H3)]. simpl in lt.
-  assert ((if dec m then true else false) = true → n <= m). apply H3. lia.
-  intros npm. destruct (dec m). lia. easy.
+  intros dec n pn.
+  pose proof (自然数布尔值大消除 (λ n, if dec n then true else false) n) as [m [dm min]].
+  - abstract (destruct (dec n); auto).
+  - exists m. destruct (dec m) as [pm|npm]. 2:discriminate.
+    split. apply pm. intros k km. pose proof (min k km).
+    destruct (dec k) as [|npk]. discriminate. apply npk.
 Qed.
