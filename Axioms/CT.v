@@ -130,8 +130,11 @@ Proof.
   set (λ c, G (λ x, if ε c x is Some x then Some ⎞x⎛ else None)) as ε'.
   exists ε'. intros f.
   set (λ n, if F f n is Some (x, y) then Some ⟨x, y⟩ else None) as f'.
-  destruct (ea f') as [c H]. exists c. intros x y. split.
-  - intros.
+  destruct (ea f') as [c Hc]. exists c. intros x y. split.
+  - intros H. apply G规则 in H as [n H].
+    destruct (ε c n) as [xy|] eqn:E; inv H.
+    apply F规则. exists n.
+    
 Admitted.
 
 Theorem EPF_iff_EA : EPF ⇔ EA.

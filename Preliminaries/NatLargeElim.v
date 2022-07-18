@@ -38,7 +38,7 @@ Proof.
 Qed.
 
 (* 从非空子集中构造地提取最小元 *)
-Theorem 自然数布尔值大消除 n : f n = true → Σ n, f n = true ∧ ∀ k, k < n → f k = false.
+Theorem 自然数布尔大消除 n : f n = true → Σ n, f n = true ∧ ∀ k, k < n → f k = false.
 Proof.
   intros H. pose proof (G_提取 0) as [m [H1 [_ H2]]].
   - apply (G_0 n). constructor. rewrite H. discriminate.
@@ -53,7 +53,7 @@ Theorem 自然数命题大消除 (p : ℕ → Prop) : 强逻辑可判定 p →
   ∀ n, p n → Σ n, p n ∧ ∀ k, k < n → ¬ p k.
 Proof.
   intros dec n pn.
-  pose proof (自然数布尔值大消除 (λ n, if dec n then true else false) n) as [m [dm min]].
+  pose proof (自然数布尔大消除 (λ n, if dec n then true else false) n) as [m [dm min]].
   - abstract (destruct (dec n); auto).
   - exists m. destruct (dec m) as [pm|npm]. 2:discriminate.
     split. apply pm. intros k km. pose proof (min k km).

@@ -93,7 +93,7 @@ Proof. unfold μ. rewrite 偏μ规则. now repeat setoid_rewrite 有值解包. Q
 
 Lemma μ有值 (f : ℕ → bool) n : f n = true → 有值 (μ f).
 Proof.
-  intros. pose proof (自然数布尔值大消除 f n H) as [m min].
+  intros. pose proof (自然数布尔大消除 f n H) as [m min].
   exists m. now apply μ规则.
 Qed.
 
@@ -143,25 +143,39 @@ Proof.
   - now apply 无规则 in H2.
 Qed.
 
+Local Lemma 小消除 (g : ℕ → (ℕ * ℕ)?) x y n : g n = Some (x, y) → 
+  let f := (λ n, if g n is Some (x', _) then x =? x' else false) in
+  ∃ m, f m = true ∧ ∀ k : ℕ, k < m → f k = false.
+Proof.
+  intros gn f. assert (fn: f n = true). {
+    unfold f. rewrite gn. now erewrite EqNat.beq_nat_refl.
+  }
+  pose proof (自然数布尔大消除 f n fn) as [m [H1 H2]].
+  exists m. split; auto.
+Qed.
+
 Fact G规则_反向 g x y n : 函数性配对 g → g n = Some (x, y) → G g x ?= y.
 Proof.
   intros Fun gn. apply 绑定规则.
-  set (λ n, if g n is Some (x', y') then x =? x' else false) as f.
-  assert (fn: f n = true). {
-    unfold f. rewrite gn. now erewrite EqNat.beq_nat_refl.
-  }
-  pose proof (自然数布尔值大消除 f n fn) as [m [H1 H2]].
-  destruct (g m) eqn:E.
-  - exists m. split.
-    + apply μ规则. split; auto.
-    + unfold f in H1. rewrite E in *. destruct p as [x' y'].
-      apply EqNat.beq_nat_true in H1 as <-.
-      apply 有值解包. eapply Fun; eauto.
-  - unfold f in H1. rewrite E in H1. discriminate.
+  pose proof (小消除 g x y n gn) as [m [H1 H2]].
+  destruct (g m) eqn:E. 2:discriminate. exists m. split.
+  - apply μ规则. split; auto. rewrite E. apply H1.
+  - rewrite E. destruct p as [x' y'].
+    apply EqNat.beq_nat_true in H1 as <-.
+    apply 有值解包. eapply Fun; eauto.
 Qed.
 
-Lemma G有值 f x : 有值 (G f x) ↔ ∃ n y, f n = Some (x, y).
-Admitted.
+Lemma G有值 g x : 有值 (G g x) ↔ ∃ n y, g n = Some (x, y).
+Proof.
+  split.
+  - intros [y H]. apply G规则 in H as [n H]. now exists n, y.
+  - intros [n [y gn]].
+    pose proof (小消除 g x y n gn) as [m [H1 H2]].
+    destruct (g m) eqn:E. 2:discriminate.
+    destruct p as [x' y']. exists y'. apply 绑定规则. exists m. split.
+    + apply μ规则. split; auto. rewrite E. apply H1.
+    + rewrite E. now apply 有值解包.
+Qed.
 
 End 给定偏函数模型.
 End PairView.
