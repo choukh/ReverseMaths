@@ -44,14 +44,37 @@ Proof.
     rewrite Nat.add_succ_r. reflexivity.
 Qed.
 
+Global Opaque F G.
+
 Notation "'λ'' ⟨ x , y ⟩ , b" := (λ n, let (x, y) := G n in b)
   (format "'λ''  ⟨ x ,  y ⟩ ,  b", at level 190, b at next level).
 
 Notation "⟨ x , y ⟩" := (F (x, y)) (format "⟨ x ,  y ⟩").
 Notation "⎞ n ⎛" := (G n) (format "⎞ n ⎛").
 
-Example test1 x y : ⎞⟨x, y⟩⎛ = (x, y).
+Lemma F_to_G xy x y : xy = ⟨x, y⟩ → ⎞xy⎛ = (x, y).
+Proof. intros. now rewrite H, GF. Qed.
+
+Lemma G_to_F xy x y : ⎞xy⎛ = (x, y) → xy = ⟨x, y⟩.
+Proof. intros. now rewrite <- FG, H. Qed.
+
+Lemma F单射 x y a b : ⟨x, y⟩ = ⟨a, b⟩ → x = a ∧ y = b.
+Proof.
+  intros H1. assert (H2: ⎞⟨x, y⟩⎛ = ⎞⟨a, b⟩⎛) by auto.
+  rewrite GF, GF in H2. now apply pair_equal_spec.
+Qed.
+
+Lemma G单射 xy ab : ⎞xy⎛ = ⎞ab⎛ → xy = ab.
+Proof.
+  intros.
+  destruct ⎞xy⎛ as [x y] eqn:E1.
+  destruct ⎞ab⎛ as [a b] eqn:E2.
+  apply pair_equal_spec in H as []; subst.
+  apply G_to_F in E1, E2. congruence.
+Qed.
+
+Example FG_test x y : ⎞⟨x, y⟩⎛ = (x, y).
 Proof. now rewrite GF. Qed.
 
-Example test2 n : ⟨fst ⎞n⎛, snd ⎞n⎛⟩ = n.
-Proof. now rewrite <- surjective_pairing, FG. Qed.
+Example GF_test xy : let (x, y) := ⎞xy⎛ in ⟨x, y⟩ = xy.
+Proof. destruct ⎞xy⎛ as [x y] eqn:E. apply G_to_F in E. congruence. Qed.

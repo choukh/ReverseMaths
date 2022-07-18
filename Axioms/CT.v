@@ -115,7 +115,7 @@ Proof.
   - intros [n H1]. unfold ε' in H1. destruct ⎞n⎛ as (x, m). exists x.
     assert (H2: f' x ?= y). apply H, 求值规则. now exists m.
     apply 求值规则 in H2 as [k H2]. unfold f' in H2.
-    destruct (f x) as [y'|].
+    destruct f as [y'|].
     + apply 有值求值 in H2. congruence.
     + exfalso. eapply 无规则. apply 求值规则. exists k. apply H2.
   - intros [x H1]. unfold ε'.
@@ -127,15 +127,41 @@ Qed.
 Lemma EA_to_EPF : EA → EPF.
 Proof.
   intros [ε ea].
-  set (λ c, G (λ x, if ε c x is Some x then Some ⎞x⎛ else None)) as ε'.
-  exists ε'. intros f.
+  set (λ c x, if ε c x is Some xy then Some ⎞xy⎛ else None) as h.
+  set (λ c, G (h c)) as ε'. exists ε'. intros f.
   set (λ n, if F f n is Some (x, y) then Some ⟨x, y⟩ else None) as f'.
-  destruct (ea f') as [c Hc]. exists c. intros x y. split.
-  - intros H. apply G规则 in H as [n H].
-    destruct (ε c n) as [xy|] eqn:E; inv H.
-    apply F规则. exists n.
-    
-Admitted.
+  destruct (ea f') as [c Hc].
+  assert (Fun: 函数性配对 (h c)). {
+    intros n m x y z H1 H2. unfold h in H1, H2.
+    destruct ε as [xy|] eqn:εcn in H1. 2:discriminate.
+    destruct ε as [xz|] eqn:εcm in H2. 2:discriminate.
+    inversion H1 as [eq1]. apply G_to_F in eq1. rewrite eq1 in εcn.
+    inversion H2 as [eq2]. apply G_to_F in eq2. rewrite eq2 in εcm.
+    destruct (proj1 (Hc ⟨x, y⟩)) as [s Hs]; eauto.
+    destruct (proj1 (Hc ⟨x, z⟩)) as [t Ht]; eauto. unfold f' in Hs, Ht.
+    destruct F eqn:Ffs in Hs. 2:discriminate. destruct p as [x1 y1].
+    destruct F eqn:Fft in Ht. 2:discriminate. destruct p as [x2 y2].
+    inversion Hs as [eq3]. inversion Ht as [eq4].
+    apply F单射 in eq3 as [], eq4 as []; subst.
+    assert (f x ?= y). apply F规则; eauto.
+    assert (f x ?= z). apply F规则; eauto.
+    eapply 解包关系单射; eauto.
+  }
+  exists c. intros x y. split.
+  - intros. apply G规则 in H as [n H1]. unfold h in H1.
+    destruct ε as [xy|] eqn:εcn in H1. 2:discriminate.
+    destruct (proj1 (Hc xy)) as [m H2]; eauto. unfold f' in H2.
+    destruct F as [xy'|] eqn:Ffm in H2. 2:discriminate.
+    destruct xy' as [x' y']. inversion H1 as [eq1]. inversion H2 as [eq2].
+    apply G_to_F in eq1. rewrite eq1 in eq2.
+    apply F单射 in eq2 as []; subst. apply F规则. eauto.
+  - intros. apply F规则 in H as [n H1].
+    destruct (proj2 (Hc ⟨x, y⟩)) as [m H2]. {
+      exists n. unfold f'. now rewrite H1.
+    }
+    unfold ε'. apply G规则_反向 with m. apply Fun.
+    unfold h. now rewrite H2, GF.
+Qed.
 
 Theorem EPF_iff_EA : EPF ⇔ EA.
 Proof. split. apply EPF_to_EA. apply EA_to_EPF. Qed.
