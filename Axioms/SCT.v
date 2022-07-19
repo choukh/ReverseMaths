@@ -22,20 +22,20 @@ Definition SEPF `{偏函数模型} := Σ ε : ℕ → ℕ ⇀ ℕ,
 Definition SEPFᴮ `{偏函数模型} := Σ ε : ℕ → ℕ ⇀ bool,
   ∀ fᵢ : ℕ → ℕ ⇀ bool, ∃ cᵢ, ∀ i, ε (cᵢ i) ≡{_} fᵢ i.
 
-Theorem CT_SMN_to_SCT : (Σ ϕ, CT ϕ ∧ SMN ϕ) → SCT.
+Theorem CT_SMN_to_SCT : (Σ ϕ, CTᵩ ϕ ∧ SMN ϕ) → SCT.
 Proof.
   intros [ϕ H]. exists ϕ.
-  destruct H as [[sat com] [S SMN]].
+  destruct H as [[sat def] [S SMN]].
   split; auto. intros f.
-  destruct (com (λ' ⟨x, y⟩, f x y)) as [c Hc].
+  destruct (def (λ' ⟨x, y⟩, f x y)) as [c Hc].
   exists (S c). intros. eapply SMN.
   destruct (Hc ⟨i, x⟩). rewrite GF in H. eauto.
 Qed.
 
-Theorem SCT_to_CT : SCT → Σ ϕ, CT ϕ.
+Theorem SCT_to_CT : SCT → CT.
 Proof.
-  intros [ϕ [sat com]]. exists ϕ. split.
+  intros [ϕ [sat def]]. exists ϕ. split.
   - apply sat.
-  - intros f. specialize (com (λ _, f)) as [γ H].
+  - intros f. specialize (def (λ _, f)) as [γ H].
     exists (γ 0). intros. eauto.
 Qed.

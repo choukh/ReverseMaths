@@ -154,7 +154,7 @@ Proof.
   exists m. split; auto.
 Qed.
 
-Fact G规则_反向 g x y n : 函数性配对 g → g n = Some (x, y) → G g x ?= y.
+Lemma G规则_反向 g x y n : 函数性配对 g → g n = Some (x, y) → G g x ?= y.
 Proof.
   intros Fun gn. apply 绑定规则.
   pose proof (小消除 g x y n gn) as [m [H1 H2]].
@@ -165,7 +165,7 @@ Proof.
     apply 有值解包. eapply Fun; eauto.
 Qed.
 
-Lemma G有值 g x : 有值 (G g x) ↔ ∃ n y, g n = Some (x, y).
+Fact G有值 g x : 有值 (G g x) ↔ ∃ n y, g n = Some (x, y).
 Proof.
   split.
   - intros [y H]. apply G规则 in H as [n H]. now exists n, y.

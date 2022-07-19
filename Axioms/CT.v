@@ -3,16 +3,18 @@
 Require Import Nat Notions Equivalence NatEmbed PartialFunc.
 Import PartialFunc.PairView.
 
-(* 邱奇论题: 任意函数在任意给定的计算模型中可定义 *)
-Definition CT (ϕ : ℕ → ℕ → ℕ → ℕ?) := 
-  (∀ c x, 安定 (ϕ c x)) ∧
-  ∀ f, ∃ c, ∀ x, ∃ n, ϕ c x n = Some (f x).
+Definition CTᵩ (ϕ : ℕ → ℕ → ℕ → ℕ?) :=
+  (* a *) (∀ c x, 安定 (ϕ c x)) ∧
+  (* b *) ∀ f, ∃ c, ∀ x, ∃ n, ϕ c x n = Some (f x).
+
+(* 邱奇论题: 强存在计算模型使得任意函数都可定义 *)
+Definition CT := Σ ϕ, CTᵩ ϕ.
 
 (* Bauer的可枚举性公理原版: 强存在可枚举谓词的枚举 *)
 (* 参考: Andrej Bauer. First steps in synthetic computability theory. Electronic Notes in Theoretical Computer Science, 155:5–31, 2006. *)
 Definition EAₒ := Σ ε : ℕ → ℕ → Prop, ∀ p : ℕ → Prop, 可枚举 p ↔ ∃ c, ε c ≡{_} p.
 
-(* EAₒ强化版: 强存在枚举函数的枚举 *)
+(* EAₒ强化版: 强存在可选值序列的枚举 *)
 Definition EA := Σ ε : ℕ → ℕ → ℕ?, ∀ f : ℕ → ℕ?, ∃ c, ε c ≡{_} f.
 
 (* EA改版: 强存在谓词枚举器的枚举 *)
@@ -41,33 +43,33 @@ Qed.
 Corollary EA_to_EAₒ : EA → EAₒ.
 Proof. intros ea. now apply EA'_to_EAₒ, EA_iff_EA'. Qed.
 
-Lemma CT_to_EA : ∀ ϕ, CT ϕ → EA.
+Lemma CT_to_EA : CT → EA.
 Proof.
-  intros ϕ [sat com].
+  intros [ϕ [sat def]].
   set (λ c, λ' ⟨x, n⟩, match ϕ c x n with
     | Some (S m) => Some m
     | _ => None
-  end) as ϕ'.
-  exists ϕ'. intros f.
+  end) as ε.
+  exists ε. intros f.
   set (λ n, match f n with
-    | Some x => S x
+    | Some m => S m
     | None => 0
   end) as f'.
-  destruct (com f') as [c com'].
-  exists c. intros y. unfold ϕ'. split.
-  - intros [m T'cm].
+  destruct (def f') as [c def'].
+  exists c. intros y. unfold ε. split.
+  - intros [m H].
     destruct ⎞m⎛ as (x, n).
-    destruct (ϕ c x n) as [[|]|] eqn: ϕcxn; inv T'cm.
-    exists x. destruct (com' x) as [n' ϕcxn'].
+    destruct (ϕ c x n) as [[|]|] eqn: ϕcxn; inv H.
+    exists x. destruct (def' x) as [n' ϕcxn'].
     assert (eq: S y = f' x). eapply 安定平稳; eauto.
     unfold f' in eq. destruct (f x); congruence.
   - intros [x fx].
-    destruct (com' x) as [n ϕcxn]. exists ⟨x, n⟩.
+    destruct (def' x) as [n ϕcxn]. exists ⟨x, n⟩.
     unfold f' in ϕcxn. now rewrite GF, ϕcxn, fx.
 Qed.
 
-Corollary CT_to_EAₒ : ∀ ϕ, CT ϕ → EAₒ.
-Proof. intros ϕ ct. now apply EA_to_EAₒ, (CT_to_EA ϕ). Qed.
+Corollary CT_to_EAₒ : CT → EAₒ.
+Proof. intros ct. now apply EA_to_EAₒ, CT_to_EA. Qed.
 
 Section 给定偏函数模型.
 Context {M : 偏函数模型}.
@@ -96,7 +98,7 @@ Proof.
     + destruct y; apply 有值解包; easy.
 Qed.
 
-Lemma EPF_to_CT : EPF → Σ ϕ, CT ϕ.
+Lemma EPF_to_CT : EPF → CT.
 Proof.
   intros [ε epf].
   set (λ c x n, ε c x @ n) as ϕ. exists ϕ. split.
@@ -163,13 +165,13 @@ Proof.
     unfold h. now rewrite H2, GF.
 Qed.
 
-Theorem EPF_iff_EA : EPF ⇔ EA.
-Proof. split. apply EPF_to_EA. apply EA_to_EPF. Qed.
+Theorem EA_iff_EPF : EA ⇔ EPF.
+Proof. split. apply EA_to_EPF. apply EPF_to_EA. Qed.
 
-Theorem CT_iff_EPF : (Σ ϕ, CT ϕ) ⇔ EPF.
+Theorem CT_iff_EPF : CT ⇔ EPF.
 Proof.
   split.
-  - intros [ϕ ct]. eapply EA_to_EPF, CT_to_EA, ct.
+  - intros ct. eapply EA_to_EPF, CT_to_EA, ct.
   - apply EPF_to_CT.
 Qed.
 
@@ -177,9 +179,9 @@ End 给定偏函数模型.
 
 Require Import PartialFuncImpl.
 
-Theorem CT_iff_EA : (Σ ϕ, CT ϕ) ⇔ EA.
+Theorem CT_iff_EA : CT ⇔ EA.
 Proof.
   split.
-  - intros [ϕ ct]. eapply CT_to_EA, ct.
+  - intros ct. eapply CT_to_EA, ct.
   - intros ea. eapply EPF_to_CT, EA_to_EPF, ea.
 Qed.
