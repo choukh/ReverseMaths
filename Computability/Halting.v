@@ -65,25 +65,15 @@ Proof.
     destruct (ε d m) eqn:εdm; inv fdm. now exists m.
 Qed.
 
+Corollary W半可判定 : 半可判定 (uncurry W).
+Proof. apply 可枚举_半可判定. auto. apply W可枚举. Qed.
+
 (* 可枚举可输出自身的代码 *)
 Corollary K可枚举 : 可枚举 K.
 Proof. eapply 可枚举性归约. apply K归约W. auto. auto. apply W可枚举. Qed.
 
 Corollary K半可判定 : 半可判定 K.
 Proof. apply 自然数_可枚举_iff_半可判定, K可枚举. Qed.
-
-Lemma W反柯里化嵌入 : uncurry W ≡ₘ λ' ⟨n, m⟩, W n m.
-Proof.
-  split.
-  - exists (λ '(n, m), ⟨n, m⟩). intros [n m]. now rewrite GF.
-  - exists (λ' ⟨n, m⟩, (n, m)). intros nm. now destruct ⎞nm⎛ as [n m].
-Qed.
-
-Corollary W半可判定 : 半可判定 (λ' ⟨n, m⟩, W n m).
-Proof.
-  apply 自然数_可枚举_iff_半可判定. eapply 可枚举性归约.
-  apply W反柯里化嵌入. all:auto. apply W可枚举.
-Qed.
 
 (* 自然数谓词可枚举等价于可归约到停机问题 *)
 Lemma 可枚举_iff_可归约到W {p : ℕ → Prop} : 可枚举 p ↔ p ≤ₘ uncurry W.
@@ -108,6 +98,13 @@ Definition sea_ε : (SEAᵖₑ ε) := EAᵖ_SMNᵂ_to_SEAᵖₑ ea smn.
 
 Lemma 参数化ea_W (pᵢ : ℕ → ℕ → Prop) : 可枚举 (uncurry pᵢ) → ∃ cᵢ, ∀ i, 枚举器 (pᵢ i) (ε (cᵢ i)).
 Proof. intros H. apply 参数化可枚举反柯里化, sea_ε in H; auto. Qed.
+
+Lemma W反柯里化嵌入 : uncurry W ≡ₘ λ' ⟨n, m⟩, W n m.
+Proof.
+  split.
+  - exists (λ '(n, m), ⟨n, m⟩). intros [n m]. now rewrite GF.
+  - exists (λ' ⟨n, m⟩, (n, m)). intros nm. now destruct ⎞nm⎛ as [n m].
+Qed.
 
 Lemma W归约K : uncurry W ≤ₘ K.
 Proof.
