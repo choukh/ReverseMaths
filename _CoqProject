@@ -3,6 +3,7 @@
 Meta.v
 
 Preliminaries/Notions.v
+Preliminaries/Discrete.v
 Preliminaries/Equivalence.v
 Preliminaries/NatEmbed.v
 Preliminaries/NatLargeElim.v
@@ -10,8 +11,11 @@ Preliminaries/PartialFunc.v
 Preliminaries/PartialFuncImpl.v
 Preliminaries/Examples.v
 
+Computability/DecidabilityFacts.v
+Computability/Reductions.v
 Computability/EnumerabilityFacts.v
-Computability/SemiDecidabilityFacts.v
 
 Axioms/CT.v
 Axioms/SCT.v
+
+Computability/Halting.v

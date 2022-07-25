@@ -49,7 +49,7 @@ Qed.
 
 End 布尔值编码.
 
-Theorem 自然数命题大消除 (p : ℕ → Prop) : 强逻辑可判定 p →
+Theorem 自然数命题大消除 (p : ℕ → Prop) : 逻辑可判定 p →
   ∀ n, p n → Σ n, p n ∧ ∀ k, k < n → ¬ p k.
 Proof.
   intros dec n pn.

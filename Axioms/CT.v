@@ -12,15 +12,18 @@ Definition CT := Σ ϕ, CTᵩ ϕ.
 
 (* Bauer的可枚举性公理原版: 强存在可枚举谓词的枚举 *)
 (* 参考: Andrej Bauer. First steps in synthetic computability theory. Electronic Notes in Theoretical Computer Science, 155:5–31, 2006. *)
-Definition EAₒ := Σ ε : ℕ → ℕ → Prop, ∀ p : ℕ → Prop, 可枚举 p ↔ ∃ c, ε c ≡{_} p.
+Definition EAᵒ := Σ ε : ℕ → ℕ → Prop, ∀ p : ℕ → Prop, 可枚举 p ↔ ∃ c, ε c ≡{_} p.
 
-(* EAₒ强化版: 强存在可选值序列的枚举 *)
+(* EAᵒ强化版: 强存在可选值序列的枚举 *)
 Definition EA := Σ ε : ℕ → ℕ → ℕ?, ∀ f : ℕ → ℕ?, ∃ c, ε c ≡{_} f.
 
 (* EA改版: 强存在谓词枚举器的枚举 *)
-Definition EA' := Σ ε : ℕ → ℕ → ℕ?, ∀ p : ℕ → Prop, 可枚举 p ↔ ∃ c, 枚举器 p (ε c).
+Definition EAᵖ := Σ ε : ℕ → ℕ → ℕ?, ∀ p : ℕ → Prop, 可枚举 p ↔ ∃ c, 枚举器 p (ε c).
 
-Theorem EA_iff_EA' : EA ⇔ EA'.
+(* 可枚举谓词表 *)
+Definition W (ε : ℕ → ℕ → ℕ?) c x := ∃ n, ε c n = Some x.
+
+Theorem EA_iff_EAᵖ : EA ⇔ EAᵖ.
 Proof.
   split.
   - intros [ε H]. exists ε. intros p. split.
@@ -33,15 +36,11 @@ Proof.
     apply H in He as [c He]. firstorder.
 Qed.
 
-Fact EA'_to_EAₒ : EA' → EAₒ.
-Proof.
-  intros [ε H].
-  set (λ c x, ∃ n, ε c n = Some x) as ε'.
-  exists ε'. intros p. rewrite H. firstorder.
-Qed.
+Fact EAᵖ_to_EAᵒ : EAᵖ → EAᵒ.
+Proof. intros [ε H]. exists (W ε). intros p. rewrite H. firstorder. Qed.
 
-Corollary EA_to_EAₒ : EA → EAₒ.
-Proof. intros ea. now apply EA'_to_EAₒ, EA_iff_EA'. Qed.
+Corollary EA_to_EAᵒ : EA → EAᵒ.
+Proof. intros ea. now apply EAᵖ_to_EAᵒ, EA_iff_EAᵖ. Qed.
 
 Lemma CT_to_EA : CT → EA.
 Proof.
@@ -68,8 +67,8 @@ Proof.
     unfold f' in ϕcxn. now rewrite GF, ϕcxn, fx.
 Qed.
 
-Corollary CT_to_EAₒ : CT → EAₒ.
-Proof. intros ct. now apply EA_to_EAₒ, CT_to_EA. Qed.
+Corollary CT_to_EAᵒ : CT → EAᵒ.
+Proof. intros ct. now apply EA_to_EAᵒ, CT_to_EA. Qed.
 
 Section 给定偏函数模型.
 Context {M : 偏函数模型}.
